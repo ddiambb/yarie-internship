@@ -10,3 +10,44 @@
 @import "./css/styles/style.css";
 @import "./css/colors/scheme-01.css";
 @import "./css/styles/coloring.css";
+
+
+.slick-slide > div {
+    padding: 2px 10px;
+}
+
+.slick-slide a, .slick-slide button {
+    pointer-events: none;
+}
+.slick-active a, .slick-active button {
+    pointer-events: auto;
+}
+
+.skeleton {
+    background: e6e6e6;
+    border-radius: 8px;
+    animation: shimmer 1.2s infinite linear;
+}
+.skeleton-img {
+    height: 160px;
+    width: 100%;
+}
+.skeleton-avatar {
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+}
+.skeleton-title {
+    height: 18px;
+    width: 70%;
+    margin: 10px 0;
+}
+.skeleton-text {
+    height: 14px;
+    width: 40%;
+}
+@keyframes shimmer {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
