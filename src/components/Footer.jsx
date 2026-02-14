@@ -1,174 +1,80 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import Logo from "../images/Ultraverse.png";
 
 const Footer = () => {
-  return (
-    <footer className="footer-light">
-      <div className="container">
-        <div className="row">
-          <div className="col-md-3 col-sm-6 col-xs-1">
-            <div className="widget">
-              <h5>Marketplace</h5>
-              <ul>
-                <li>
-                  <Link to="#" className="no-cursor">
-                    All NFTs
-                  </Link>
-                </li>
-                <li>
-                  <Link to="#" className="no-cursor">
-                    Art
-                  </Link>
-                </li>
-                <li>
-                  <Link to="#" className="no-cursor">
-                    Music
-                  </Link>
-                </li>
-                <li>
-                  <Link to="#" className="no-cursor">
-                    Domain Names
-                  </Link>
-                </li>
-                <li>
-                  <Link to="#" className="no-cursor">
-                    Virtual World
-                  </Link>
-                </li>
-                <li>
-                  <Link to="#" className="no-cursor">
-                    Collectibles
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="col-md-3 col-sm-6 col-xs-1">
-            <div className="widget">
-              <h5>Resources</h5>
-              <ul>
-                <li>
-                  <Link to="#" className="no-cursor">
-                    Help Center
-                  </Link>
-                </li>
-                <li>
-                  <Link to="#" className="no-cursor">
-                    Partners
-                  </Link>
-                </li>
-                <li>
-                  <Link to="#" className="no-cursor">
-                    Suggestions
-                  </Link>
-                </li>
-                <li>
-                  <Link to="#" className="no-cursor">
-                    Discord
-                  </Link>
-                </li>
-                <li>
-                  <Link to="#" className="no-cursor">
-                    Docs
-                  </Link>
-                </li>
-                <li>
-                  <Link to="#" className="no-cursor">
-                    Newsletter
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="col-md-3 col-sm-6 col-xs-1">
-            <div className="widget">
-              <h5>Community</h5>
-              <ul>
-                <li>
-                  <Link to="#" className="no-cursor">
-                    Community
-                  </Link>
-                </li>
-                <li>
-                  <Link to="#" className="no-cursor">
-                    Documentation
-                  </Link>
-                </li>
-                <li>
-                  <Link to="#" className="no-cursor">
-                    Brand Assets
-                  </Link>
-                </li>
-                <li>
-                  <Link to="#" className="no-cursor">
-                    Blog
-                  </Link>
-                </li>
-                <li>
-                  <Link to="#" className="no-cursor">
-                    Forum
-                  </Link>
-                </li>
-                <li>
-                  <Link to="#" className="no-cursor">
-                    Mailing List
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="col-md-3 col-sm-6 col-xs-1">
-            <div className="widget">
-              <h5>Newsletter</h5>
-              <p>
-                Signup for our newsletter to get the latest news in your inbox.
-              </p>
-              <form
-                action="blank.php"
-                className="row form-dark"
-                id="form_subscribe"
-                method="post"
-                name="form_subscribe"
-              >
-                <div className="col text-center">
-                  <input
-                    className="form-control"
-                    id="txt_subscribe"
-                    name="txt_subscribe"
-                    placeholder="enter your email"
-                    type="text"
-                  />
-                  <Link to="#" className="no-cursor" id="btn-subscribe">
-                    <i className="arrow_right bg-color-secondary"></i>
-                  </Link>
-                  <div className="clearfix"></div>
-                </div>
-              </form>
-              <div className="spacer-10"></div>
-              <small>Your email is safe with us. We don't spam.</small>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="subfooter">
-        <div className="container">
-          <div className="row">
-            <div className="col-md-12">
-              <div className="de-flex footer__wrapper">
-                <div className="de-flex-col">
-                  <Link className="footer__link" to="/">
-                    <img alt="" className="f-logo" src={Logo} />
-                    <span className="copy">&copy; Copyright 2022</span>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
+return (
+<footer className="footer-light">
+<div className="container">
+<div className="row">
+{/* Column 1 */}
+<div className="col-md-3 col-sm-6 col-xs-12">
+<div className="widget">
+<h5>Marketplace</h5>
+<ul>
+<li><span className="no-cursor">All NFTs</span></li>
+<li><span className="no-cursor">Art</span></li>
+<li><span className="no-cursor">Music</span></li>
+<li><span className="no-cursor">Domain Names</span></li>
+<li><span className="no-cursor">Virtual World</span></li>
+<li><span className="no-cursor">Collectibles</span></li>
+</ul>
+</div>
+</div>
+
+{/* Column 2 */}
+<div className="col-md-3 col-sm-6 col-xs-12">
+<div className="widget">
+<h5>Resources</h5>
+<ul>
+<li><span className="no-cursor">Help Center</span></li>
+<li><span className="no-cursor">Partners</span></li>
+<li><span className="no-cursor">Suggestions</span></li>
+<li><span className="no-cursor">Discord</span></li>
+<li><span className="no-cursor">Docs</span></li>
+<li><span className="no-cursor">Newsletter</span></li>
+</ul>
+</div>
+</div>
+
+{/* Column 3 */}
+<div className="col-md-3 col-sm-6 col-xs-12">
+<div className="widget">
+<h5>Community</h5>
+<ul>
+<li><span className="no-cursor">Community</span></li>
+<li><span className="no-cursor">Documentation</span></li>
+<li><span className="no-cursor">Brand Assets</span></li>
+<li><span className="no-cursor">Blog</span></li>
+<li><span className="no-cursor">Forum</span></li>
+<li><span className="no-cursor">Mailing List</span></li>
+</ul>
+</div>
+</div>
+
+{/* Column 4 */}
+<div className="col-md-3 col-sm-6 col-xs-12">
+<div className="widget">
+<h5>Ultraverse</h5>
+<ul>
+{/* ONLY use Link when you have a REAL route */}
+<li><Link to="/" className="no-cursor">Home</Link></li>
+<li><span className="no-cursor">Explore</span></li>
+<li><span className="no-cursor">Contact</span></li>
+</ul>
+</div>
+</div>
+</div>
+
+<div className="spacer-20" />
+<div className="row">
+<div className="col-md-12 text-center">
+<div className="footer__logo">ULTRAVERSE NFT WORLD</div>
+<div>© Copyright 2022</div>
+</div>
+</div>
+</div>
+</footer>
+);
 };
 
 export default Footer;
