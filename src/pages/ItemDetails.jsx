@@ -1,12 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import SubHeader from "../images/subheader.jpg";
+import EthImage from "../images/ethereum.svg";
 import AuthorImageFallback from "../images/author_thumbnail.jpg";
 import nftImageFallback from "../images/nftImage.jpg";
-import CountdownTimer from "../components/shared/CountdownTimer";
-import Skeleton from "../components/shared/Skeleton";
-
-
 
 const ItemDetails = () => {
   const { itemId } = useParams();
@@ -14,23 +10,28 @@ const ItemDetails = () => {
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const detailsUrl = useMemo(() => {
-    // Most common for this internship backend:
-    // itemDetails?nftId=<id>
-    return `https://us-central1-nft-cloud-functions.cloudfunctions.net/itemDetails?nftId=${encodeURIComponent(
-      itemId || ""
-    )}`;
-  }, [itemId]);
+  const isPlaceholder = useMemo(() => loading || !itemId, [loading, itemId]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
+  }, [itemId]);
 
-    if (!itemId) return;
-
+  useEffect(() => {
     let isMounted = true;
+
+    if (!itemId) {
+      setItem(null);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
 
-    fetch(detailsUrl)
+    const url =
+      "https://us-central1-nft-cloud-functions.cloudfunctions.net/itemDetails?nftId=" +
+      encodeURIComponent(itemId);
+
+    fetch(url)
       .then((res) => res.json())
       .then((data) => {
         if (!isMounted) return;
@@ -45,116 +46,136 @@ const ItemDetails = () => {
     return () => {
       isMounted = false;
     };
-  }, [detailsUrl, itemId]);
+  }, [itemId]);
 
-  const authorId = item?.authorId ?? "";
-  const authorName = item?.authorName ?? "Author";
-  const authorImage = item?.authorImage ?? AuthorImageFallback;
-
-  const nftImage =
-    item?.nftImage ??
-    item?.image ??
-    item?.img ??
-    item?.imageURL ??
-    item?.imageUrl ??
-    item?.nftImageUrl ??
-    item?.nftUrl ??
-    item?.nft ??
-    nftImageFallback;
-
-  const title = item?.title ?? item?.nftName ?? "NFT Item";
+  const title = item?.title || "NFT Item";
+  const description = item?.description || "";
   const price = item?.price ?? 0;
   const likes = item?.likes ?? 0;
+  const views = item?.views ?? 0;
+  const image =
+    item?.nftImage ||
+    item?.image ||
+    item?.imageUrl ||
+    item?.img ||
+    nftImageFallback;
 
-  const expiryDate = item?.expiryDate ?? item?.endDate ?? null;
-  const expiresAt = typeof item?.expiresAt === "number" ? item.expiresAt : null;
+  const authorId = item?.authorId || item?.author?.authorId || "";
+  const authorName = item?.authorName || item?.author?.name || "Unknown";
+  const authorImage =
+    item?.authorImage || item?.author?.image || AuthorImageFallback;
 
   return (
     <div id="wrapper">
       <div className="no-bottom no-top" id="content">
         <div id="top"></div>
 
-        <section
-          id="subheader"
-          className="text-light"
-          style={{ background: `url("${SubHeader}") top` }}
-        >
-          <div className="center-y relative text-center">
-            <div className="container">
-              <div className="row">
-                <div className="col-md-12 text-center">
-                  <h1>Item Details</h1>
-                </div>
-                <div className="clearfix"></div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section aria-label="section">
+        <section aria-label="section" className="mt90 sm-mt-0">
           <div className="container">
             <div className="row">
-              {/* Image */}
               <div className="col-md-6 text-center">
-                {loading ? (
-                  <Skeleton width="100%" height={420} borderRadius={12} />
-                ) : (
-                  <img
-                    src={nftImage}
-                    alt={title}
-                    style={{ width: "100%", height: "auto", borderRadius: 12 }}
-                  />
+                <img
+                  src={image}
+                  className="img-fluid img-rounded mb-sm-30 nft-image"
+                  alt={title}
+                />
+                {isPlaceholder && (
+                  <div style={{ marginTop: 12, opacity: 0.7 }}>
+                    Loading item details…
+                  </div>
                 )}
               </div>
 
-              {/* Details */}
               <div className="col-md-6">
-                {loading ? (
-                  <>
-                    <Skeleton width="70%" height={26} borderRadius={8} />
-                    <div style={{ height: 12 }} />
-                    <Skeleton width="40%" height={18} borderRadius={8} />
-                    <div style={{ height: 24 }} />
-                    <Skeleton width="100%" height={120} borderRadius={12} />
-                  </>
-                ) : (
-                  <>
-                    <h2>{title}</h2>
+                <div className="item_info">
+                  <h2>{title}</h2>
 
-                    <div style={{ margin: "12px 0" }}>
-                      <CountdownTimer expiryDate={expiryDate} expiresAt={expiresAt} />
+                  <div className="item_info_counts">
+                    <div className="item_info_views">
+                      <i className="fa fa-eye"></i> {views}
                     </div>
+                    <div className="item_info_like">
+                      <i className="fa fa-heart"></i> {likes}
+                    </div>
+                  </div>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-                      <img
-                        src={authorImage}
-                        alt={authorName}
-                        style={{ width: 44, height: 44, borderRadius: "50%" }}
-                      />
-                      <div>
-                        <div style={{ fontWeight: 600 }}>{authorName}</div>
-                        {authorId ? (
-                          <Link to={`/author/${authorId}`}>View author</Link>
-                        ) : (
-                          <span />
-                        )}
+                  <p>{description}</p>
+
+                  <div className="d-flex flex-row">
+                    <div className="mr40">
+                      <h6>Owner</h6>
+                      <div className="item_author">
+                        <div className="author_list_pp">
+                          <Link
+                            to={isPlaceholder || !authorId ? "#" : `/author/${authorId}`}
+                            onClick={(e) =>
+                              (isPlaceholder || !authorId) && e.preventDefault()
+                            }
+                          >
+                            <img className="lazy" src={authorImage} alt={authorName} />
+                            <i className="fa fa-check"></i>
+                          </Link>
+                        </div>
+
+                        <div className="author_list_info">
+                          <Link
+                            to={isPlaceholder || !authorId ? "#" : `/author/${authorId}`}
+                            onClick={(e) =>
+                              (isPlaceholder || !authorId) && e.preventDefault()
+                            }
+                          >
+                            {authorName}
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="de_tab tab_simple">
+                    <div className="de_tab_content">
+                      <h6>Creator</h6>
+
+                      <div className="item_author">
+                        <div className="author_list_pp">
+                          <Link
+                            to={isPlaceholder || !authorId ? "#" : `/author/${authorId}`}
+                            onClick={(e) =>
+                              (isPlaceholder || !authorId) && e.preventDefault()
+                            }
+                          >
+                            <img className="lazy" src={authorImage} alt={authorName} />
+                            <i className="fa fa-check"></i>
+                          </Link>
+                        </div>
+
+                        <div className="author_list_info">
+                          <Link
+                            to={isPlaceholder || !authorId ? "#" : `/author/${authorId}`}
+                            onClick={(e) =>
+                              (isPlaceholder || !authorId) && e.preventDefault()
+                            }
+                          >
+                            {authorName}
+                          </Link>
+                        </div>
+                      </div>
+
+                      <div className="spacer-40"></div>
+
+                      <h6>Price</h6>
+                      <div className="nft-item-price">
+                        <img src={EthImage} alt="ETH" />
+                        <span>{Number(price).toFixed(2)}</span>
                       </div>
                     </div>
 
-                    <div style={{ fontSize: 18, marginBottom: 10 }}>
-                      <strong>{Number(price).toFixed(2)} ETH</strong>
-                    </div>
-
-                    <div style={{ marginBottom: 16 }}>
-                      <i className="fa fa-heart"></i> {likes}
-                    </div>
-
-                    <button className="btn-main">Buy Now</button>
-                    <Link to="/explore" className="btn-main" style={{ marginLeft: 10 }}>
-                      Back to Explore
-                    </Link>
-                  </>
-                )}
+                    {!loading && itemId && !item && (
+                      <div style={{ marginTop: 12, color: "#c00" }}>
+                        Couldn’t load item #{itemId}. Check the endpoint or itemId.
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
