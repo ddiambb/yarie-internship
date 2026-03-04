@@ -4,185 +4,275 @@ import EthImage from "../images/ethereum.svg";
 import AuthorImageFallback from "../images/author_thumbnail.jpg";
 import nftImageFallback from "../images/nftImage.jpg";
 
+const pickFirst = (...vals) => {
+for (const v of vals) {
+if (v === 0) return 0;
+if (typeof v === "string" && v.trim() !== "") return v;
+if (v !== undefined && v !== null && typeof v !== "string") return v;
+}
+return "";
+};
+
+const normalizePerson = (raw) => {
+const id = String(
+pickFirst(
+raw?.authorId,
+raw?.id,
+raw?._id,
+raw?.userId,
+raw?.ownerId,
+raw?.creatorId
+) || ""
+).trim();
+
+const name = String(
+pickFirst(
+raw?.authorName,
+raw?.name,
+raw?.username,
+raw?.displayName,
+raw?.ownerName,
+raw?.creatorName
+) || ""
+).trim();
+
+const image = pickFirst(raw?.authorImage, raw?.image, raw?.avatar, raw?.profileImage);
+
+return {
+id,
+name: name || "Unknown",
+image: image || AuthorImageFallback,
+};
+};
+
 const ItemDetails = () => {
-  const { itemId } = useParams();
+const { itemId } = useParams();
 
-  const [item, setItem] = useState(null);
-  const [loading, setLoading] = useState(true);
+const [item, setItem] = useState(null);
+const [loading, setLoading] = useState(true);
 
-  const isPlaceholder = useMemo(() => loading || !itemId, [loading, itemId]);
+const isPlaceholder = useMemo(() => loading || !itemId, [loading, itemId]);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [itemId]);
+useEffect(() => {
+window.scrollTo(0, 0);
+}, [itemId]);
 
-  useEffect(() => {
-    let isMounted = true;
+useEffect(() => {
+let isMounted = true;
 
-    if (!itemId) {
-      setItem(null);
-      setLoading(false);
-      return;
-    }
+if (!itemId) {
+setItem(null);
+setLoading(false);
+return;
+}
 
-    setLoading(true);
+setLoading(true);
 
-    const url =
-      "https://us-central1-nft-cloud-functions.cloudfunctions.net/itemDetails?nftId=" +
-      encodeURIComponent(itemId);
+const url =
+"https://us-central1-nft-cloud-functions.cloudfunctions.net/itemDetails?nftId=" +
+encodeURIComponent(itemId);
 
-    fetch(url)
-      .then((res) => res.json())
-      .then((data) => {
-        if (!isMounted) return;
-        setItem(data && typeof data === "object" ? data : null);
-      })
-      .catch((err) => console.error("itemDetails error:", err))
-      .finally(() => {
-        if (!isMounted) return;
-        setLoading(false);
-      });
+fetch(url)
+.then((res) => res.json())
+.then((data) => {
+if (!isMounted) return;
+setItem(data && typeof data === "object" ? data : null);
+})
+.catch((err) => console.error("itemDetails error:", err))
+.finally(() => {
+if (!isMounted) return;
+setLoading(false);
+});
 
-    return () => {
-      isMounted = false;
-    };
-  }, [itemId]);
+return () => {
+isMounted = false;
+};
+}, [itemId]);
 
-  const title = item?.title || "NFT Item";
-  const description = item?.description || "";
-  const price = item?.price ?? 0;
-  const likes = item?.likes ?? 0;
-  const views = item?.views ?? 0;
-  const image =
-    item?.nftImage ||
-    item?.image ||
-    item?.imageUrl ||
-    item?.img ||
-    nftImageFallback;
+// Basic fields
+const title = item?.title || item?.name || "NFT Item";
+const description = item?.description || item?.desc || "";
+const price = Number(pickFirst(item?.price, item?.currentBid, item?.ethPrice, 0)) || 0;
+const likes = Number(pickFirst(item?.likes, item?.likeCount, 0)) || 0;
+const views = Number(pickFirst(item?.views, item?.viewCount, 0)) || 0;
 
-  const authorId = item?.authorId || item?.author?.authorId || "";
-  const authorName = item?.authorName || item?.author?.name || "Unknown";
-  const authorImage =
-    item?.authorImage || item?.author?.image || AuthorImageFallback;
+const image =
+pickFirst(
+item?.nftImage,
+item?.image,
+item?.imageUrl,
+item?.img,
+item?.cover,
+item?.thumbnail
+) || nftImageFallback;
 
-  return (
-    <div id="wrapper">
-      <div className="no-bottom no-top" id="content">
-        <div id="top"></div>
 
-        <section aria-label="section" className="mt90 sm-mt-0">
-          <div className="container">
-            <div className="row">
-              <div className="col-md-6 text-center">
-                <img
-                  src={image}
-                  className="img-fluid img-rounded mb-sm-30 nft-image"
-                  alt={title}
-                />
-                {isPlaceholder && (
-                  <div style={{ marginTop: 12, opacity: 0.7 }}>
-                    Loading item details…
-                  </div>
-                )}
-              </div>
+const owner = normalizePerson(
+pickFirst(
+item?.owner,
+item?.ownerInfo,
+item?.ownerData,
+item?.author,
+{
+ownerId: item?.ownerId,
+ownerName: item?.ownerName,
+image: item?.ownerImage,
+},
+{
+authorId: item?.authorId,
+authorName: item?.authorName,
+authorImage: item?.authorImage,
+}
+)
+);
 
-              <div className="col-md-6">
-                <div className="item_info">
-                  <h2>{title}</h2>
 
-                  <div className="item_info_counts">
-                    <div className="item_info_views">
-                      <i className="fa fa-eye"></i> {views}
-                    </div>
-                    <div className="item_info_like">
-                      <i className="fa fa-heart"></i> {likes}
-                    </div>
-                  </div>
+const creator = normalizePerson(
+pickFirst(
+item?.creator,
+item?.creatorInfo,
+item?.creatorData,
+item?.author, 
+{
+creatorId: item?.creatorId,
+creatorName: item?.creatorName,
+image: item?.creatorImage,
+},
+{
+authorId: item?.authorId,
+authorName: item?.authorName,
+authorImage: item?.authorImage,
+}
+)
+);
 
-                  <p>{description}</p>
+const ownerLink = owner.id ? `/author/${owner.id}` : "#";
+const creatorLink = creator.id ? `/author/${creator.id}` : "#";
 
-                  <div className="d-flex flex-row">
-                    <div className="mr40">
-                      <h6>Owner</h6>
-                      <div className="item_author">
-                        <div className="author_list_pp">
-                          <Link
-                            to={isPlaceholder || !authorId ? "#" : `/author/${authorId}`}
-                            onClick={(e) =>
-                              (isPlaceholder || !authorId) && e.preventDefault()
-                            }
-                          >
-                            <img className="lazy" src={authorImage} alt={authorName} />
-                            <i className="fa fa-check"></i>
-                          </Link>
-                        </div>
+return (
+<div id="wrapper">
+<div className="no-bottom no-top" id="content">
+<div id="top" />
 
-                        <div className="author_list_info">
-                          <Link
-                            to={isPlaceholder || !authorId ? "#" : `/author/${authorId}`}
-                            onClick={(e) =>
-                              (isPlaceholder || !authorId) && e.preventDefault()
-                            }
-                          >
-                            {authorName}
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+<section aria-label="section" className="mt90 sm-mt-0">
+<div className="container">
+<div className="row">
+<div className="col-md-6 text-center">
+<img
+src={image}
+className="img-fluid img-rounded mb-sm-30 nft-image"
+alt={title}
+/>
 
-                  <div className="de_tab tab_simple">
-                    <div className="de_tab_content">
-                      <h6>Creator</h6>
+{isPlaceholder && (
+<div style={{ marginTop: 12, opacity: 0.7 }}>
+Loading item details…
+</div>
+)}
+</div>
 
-                      <div className="item_author">
-                        <div className="author_list_pp">
-                          <Link
-                            to={isPlaceholder || !authorId ? "#" : `/author/${authorId}`}
-                            onClick={(e) =>
-                              (isPlaceholder || !authorId) && e.preventDefault()
-                            }
-                          >
-                            <img className="lazy" src={authorImage} alt={authorName} />
-                            <i className="fa fa-check"></i>
-                          </Link>
-                        </div>
+<div className="col-md-6">
+<div className="item_info">
+<h2>{title}</h2>
 
-                        <div className="author_list_info">
-                          <Link
-                            to={isPlaceholder || !authorId ? "#" : `/author/${authorId}`}
-                            onClick={(e) =>
-                              (isPlaceholder || !authorId) && e.preventDefault()
-                            }
-                          >
-                            {authorName}
-                          </Link>
-                        </div>
-                      </div>
+<div className="item_info_counts">
+<div className="item_info_views">
+<i className="fa fa-eye" /> {views}
+</div>
+<div className="item_info_like">
+<i className="fa fa-heart" /> {likes}
+</div>
+</div>
 
-                      <div className="spacer-40"></div>
+<p>{description}</p>
 
-                      <h6>Price</h6>
-                      <div className="nft-item-price">
-                        <img src={EthImage} alt="ETH" />
-                        <span>{Number(price).toFixed(2)}</span>
-                      </div>
-                    </div>
+<div className="d-flex flex-row">
+<div className="mr40">
+<h6>Owner</h6>
 
-                    {!loading && itemId && !item && (
-                      <div style={{ marginTop: 12, color: "#c00" }}>
-                        Couldn’t load item #{itemId}. Check the endpoint or itemId.
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-    </div>
-  );
+<div className="item_author">
+<div className="author_list_pp">
+<Link
+to={isPlaceholder || !owner.id ? "#" : ownerLink}
+onClick={(e) =>
+(isPlaceholder || !owner.id) && e.preventDefault()
+}
+>
+<img className="lazy" src={owner.image} alt={owner.name} />
+<i className="fa fa-check" />
+</Link>
+</div>
+
+<div className="author_list_info">
+<Link
+to={isPlaceholder || !owner.id ? "#" : ownerLink}
+onClick={(e) =>
+(isPlaceholder || !owner.id) && e.preventDefault()
+}
+>
+{owner.name}
+</Link>
+</div>
+</div>
+</div>
+</div>
+
+<div className="de_tab tab_simple">
+<div className="de_tab_content">
+<h6>Creator</h6>
+
+<div className="item_author">
+<div className="author_list_pp">
+<Link
+to={isPlaceholder || !creator.id ? "#" : creatorLink}
+onClick={(e) =>
+(isPlaceholder || !creator.id) && e.preventDefault()
+}
+>
+<img
+className="lazy"
+src={creator.image}
+alt={creator.name}
+/>
+<i className="fa fa-check" />
+</Link>
+</div>
+
+<div className="author_list_info">
+<Link
+to={isPlaceholder || !creator.id ? "#" : creatorLink}
+onClick={(e) =>
+(isPlaceholder || !creator.id) && e.preventDefault()
+}
+>
+{creator.name}
+</Link>
+</div>
+</div>
+
+<div className="spacer-40" />
+
+<h6>Price</h6>
+<div className="nft-item-price">
+<img src={EthImage} alt="ETH" />
+<span>{Number(price).toFixed(2)}</span>
+</div>
+</div>
+
+{!loading && itemId && !item && (
+<div style={{ marginTop: 12, color: "#c00" }}>
+Couldn’t load item #{itemId}. Check the endpoint or itemId.
+</div>
+)}
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+);
 };
 
 export default ItemDetails;
