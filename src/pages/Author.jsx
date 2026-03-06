@@ -6,7 +6,7 @@ import AuthorImageFallback from "../images/author_thumbnail.jpg";
 
 const Author = () => {
 const { authorId } = useParams();
-console.log("authorId from URL:", authorId);
+
 
 const [author, setAuthor] = useState(null);
 const [loading, setLoading] = useState(true);
@@ -33,7 +33,7 @@ const url =
 "https://us-central1-nft-cloud-functions.cloudfunctions.net/author?author=" +
 encodeURIComponent(authorId);
 
-console.log("author endpoint:", url);
+
 
 fetch(url)
 .then((res) => res.json())
