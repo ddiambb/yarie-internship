@@ -53,7 +53,6 @@ const authorLink = authorId ? `/author/${authorId}` : "#";
 
 const authorName = seller?.authorName ?? "Unknown";
 const authorImage = seller?.authorImage ?? AuthorImageFallback;
-
 const priceValue = Number(seller?.price);
 const priceText = Number.isFinite(priceValue)
 ? priceValue.toFixed(1)
