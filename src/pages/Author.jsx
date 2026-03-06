@@ -149,5 +149,4 @@ Couldn’t load this author. Check the endpoint / ID.
 </div>
 );
 };
-
 export default Author;

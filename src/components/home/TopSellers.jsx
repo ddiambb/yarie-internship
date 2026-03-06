@@ -102,3 +102,4 @@ alt={isPlaceholder ? "" : authorName}
 };
 
 export default TopSellers;
+
