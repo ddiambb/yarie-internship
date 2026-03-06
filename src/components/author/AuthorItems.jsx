@@ -22,7 +22,6 @@ return;
 
 setLoading(true);
 
-// ✅ correct param name: author=...
 const url =
 "https://us-central1-nft-cloud-functions.cloudfunctions.net/authorItems?author=" +
 encodeURIComponent(authorId);
