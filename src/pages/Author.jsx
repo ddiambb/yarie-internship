@@ -1,100 +1,153 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
 import AuthorBanner from "../images/author_banner.jpg";
 import AuthorItems from "../components/author/AuthorItems";
-import { Link, useParams } from "react-router-dom";
 import AuthorImageFallback from "../images/author_thumbnail.jpg";
 
 const Author = () => {
-  const { authorId } = useParams();
+const { authorId } = useParams();
+console.log("authorId from URL:", authorId);
 
-  const [authorName, setAuthorName] = useState("Author");
-  const [authorUsername, setAuthorUsername] = useState("@author");
-  const [authorImage, setAuthorImage] = useState(AuthorImageFallback);
+const [author, setAuthor] = useState(null);
+const [loading, setLoading] = useState(true);
+const [isFollowing, setIsFollowing] = useState(false);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
+const isPlaceholder = useMemo(() => loading || !authorId, [loading, authorId]);
 
-    if (!authorId) return;
+useEffect(() => {
+window.scrollTo(0, 0);
+}, [authorId]);
 
-    fetch("https://us-central1-nft-cloud-functions.cloudfunctions.net/topSellers")
-      .then((res) => res.json())
-      .then((data) => {
-        if (!Array.isArray(data)) return;
+useEffect(() => {
+let isMounted = true;
 
-        const found = data.find(
-          (s) => String(s?.authorId) === String(authorId)
-        );
+if (!authorId) {
+setAuthor(null);
+setLoading(false);
+return;
+}
 
-        if (!found) return;
+setLoading(true);
 
-        const name = found?.authorName || "Author";
-        const img = found?.authorImage || AuthorImageFallback;
+const url =
+"https://us-central1-nft-cloud-functions.cloudfunctions.net/author?author=" +
+encodeURIComponent(authorId);
 
-        setAuthorName(name);
-        setAuthorImage(img);
+console.log("author endpoint:", url);
 
-        setAuthorUsername(
-          found?.authorUsername ||
-            `@${String(name).toLowerCase().replace(/\s+/g, "")}`
-        );
-      })
-      .catch((err) => console.error("author header error:", err));
-  }, [authorId]);
+fetch(url)
+.then((res) => res.json())
+.then((data) => {
+if (!isMounted) return;
+setAuthor(data && typeof data === "object" ? data : null);
 
-  return (
-    <div id="wrapper">
-      <div className="no-bottom no-top" id="content">
-        <div id="top"></div>
 
-        <section
-          id="profile_banner"
-          aria-label="section"
-          className="text-light"
-          style={{ background: `url(${AuthorBanner}) top` }}
-        ></section>
+setIsFollowing(false);
+})
+.catch((err) => console.error("author error:", err))
+.finally(() => {
+if (!isMounted) return;
+setLoading(false);
+});
 
-        <section aria-label="section">
-          <div className="container">
-            <div className="row">
-              <div className="col-md-12">
-                <div className="d_profile de-flex">
-                  <div className="de-flex-col">
-                    <div className="profile_avatar">
-                      <img src={authorImage} alt="" />
-                      <i className="fa fa-check"></i>
-
-                      <div className="profile_name">
-                        <h4>
-                          {authorName}
-                          <span className="profile_username">
-                            {authorUsername}
-                          </span>
-                        </h4>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="profile_follow de-flex">
-                    <div className="de-flex-col">
-                      <div className="profile_follower">0 followers</div>
-                      <Link to="#" className="btn-main">
-                        Follow
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="col-md-12">
-                <div className="de_tab tab_simple">
-                  <AuthorItems />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-    </div>
-  );
+return () => {
+isMounted = false;
 };
+}, [authorId]);
+
+const name = author?.authorName ?? "Unknown";
+const tag = author?.tag ?? "";
+const wallet = author?.address ?? author?.walletAddress ?? author?.wallet ?? "";
+const image = author?.authorImage ?? AuthorImageFallback;
+
+const baseFollowers = Number(author?.followers ?? 0);
+const followers = Number.isFinite(baseFollowers)
+? baseFollowers + (isFollowing ? 1 : 0)
+: isFollowing
+? 1
+: 0;
+
+const onToggleFollow = () => {
+if (isPlaceholder) return;
+setIsFollowing((prev) => !prev);
+};
+
+return (
+<div id="wrapper">
+<div className="no-bottom no-top" id="content">
+<div id="top"></div>
+
+<section
+id="profile_banner"
+aria-label="section"
+className="text-light"
+style={{ background: `url(${AuthorBanner}) top` }}
+></section>
+
+<section aria-label="section">
+<div className="container">
+<div className="row">
+<div className="col-md-12">
+<div className="d_profile de-flex">
+<div className="de-flex-col">
+<div className="profile_avatar">
+<img src={image} alt={name} />
+<i className="fa fa-check"></i>
+
+<div className="profile_name">
+<h4>
+{isPlaceholder ? "Loading..." : name}
+<span className="profile_username">
+{isPlaceholder
+? ""
+: tag
+? `@${tag}`
+: `@${String(name).toLowerCase().replace(/\s+/g, "")}`}
+</span>
+
+<span style={{ display: "block", marginTop: 6, opacity: 0.85 }}>
+{isPlaceholder || !wallet ? "" : wallet}
+</span>
+</h4>
+</div>
+</div>
+</div>
+
+<div className="profile_follow de-flex">
+<div className="de-flex-col">
+<div className="profile_follower">
+{isPlaceholder ? "..." : followers} followers
+</div>
+
+<button
+type="button"
+className="btn-main"
+onClick={onToggleFollow}
+>
+{isFollowing ? "Unfollow" : "Follow"}
+</button>
+</div>
+</div>
+</div>
+</div>
+
+<div className="col-md-12">
+<div className="de_tab tab_simple">
+<AuthorItems authorName={name} authorImage={image} />
+</div>
+</div>
+
+{!loading && authorId && !author && (
+<div className="col-md-12" style={{ marginTop: 12, color: "#c00" }}>
+Couldn’t load this author. Check the endpoint / ID.
+</div>
+)}
+</div>
+</div>
+</section>
+</div>
+</div>
+);
+};
+
 export default Author;
