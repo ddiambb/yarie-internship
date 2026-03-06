@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import AuthorImageFallback from "../../images/author_thumbnail.jpg";
 import nftImageFallback from "../../images/nftImage.jpg";
 
-const AuthorItems = () => {
+const AuthorItems = ({ authorName, authorImage }) => {
 const { authorId } = useParams();
 
 const [authorItems, setAuthorItems] = useState([]);
@@ -13,10 +13,19 @@ const placeholders = useMemo(() => new Array(8).fill(null), []);
 
 useEffect(() => {
 let isMounted = true;
+
+if (!authorId) {
+setAuthorItems([]);
+setLoading(false);
+return;
+}
+
 setLoading(true);
 
-
-const url = `https://us-central1-nft-cloud-functions.cloudfunctions.net/authorItems?authorId=${authorId}`;
+// ✅ correct param name: author=...
+const url =
+"https://us-central1-nft-cloud-functions.cloudfunctions.net/authorItems?author=" +
+encodeURIComponent(authorId);
 
 fetch(url)
 .then((res) => res.json())
@@ -43,23 +52,30 @@ return (
 <div className="row">
 {listToRender.map((item, index) => {
 const isPlaceholder = loading || !item;
-const itemId = item?.id ?? item?._id ?? "";
-const title = item?.title ?? item?.nftName ?? "Pinky Ocean";
-const price = item?.price ?? 2.52;
-const likes = item?.likes ?? 97;
 
-const authorImage = item?.authorImage ?? AuthorImageFallback;
-const nftImage = item?.nftImage ?? item?.image ?? nftImageFallback;
+
+const nftId = item?.nftId ?? item?.id ?? item?._id ?? "";
+const title = item?.title ?? item?.nftName ?? "Untitled";
+const priceValue = Number(item?.price);
+const priceText = Number.isFinite(priceValue) ? priceValue.toFixed(2) : "0.00";
+const likes = item?.likes ?? 0;
+
+
+const aImg =
+item?.authorImage ?? authorImage ?? AuthorImageFallback;
+
+const nImg =
+item?.nftImage ?? item?.image ?? item?.imageUrl ?? nftImageFallback;
 
 return (
-<div className="col-lg-3 col-md-6 col-sm-6 col-xs-12" key={itemId || index}>
+<div className="col-lg-3 col-md-6 col-sm-6 col-xs-12" key={nftId || index}>
 <div className="nft__item">
 <div className="author_list_pp">
 <Link
 to={isPlaceholder ? "#" : `/author/${authorId}`}
 onClick={(e) => isPlaceholder && e.preventDefault()}
 >
-<img className="lazy" src={authorImage} alt="" />
+<img className="lazy" src={aImg} alt={authorName || "Author"} />
 <i className="fa fa-check"></i>
 </Link>
 </div>
@@ -84,32 +100,38 @@ onClick={(e) => isPlaceholder && e.preventDefault()}
 </div>
 
 <Link
-to={isPlaceholder ? "#" : `/item-details/${itemId}`}
-onClick={(e) => isPlaceholder && e.preventDefault()}
+to={isPlaceholder || !nftId ? "#" : `/item-details/${nftId}`}
+onClick={(e) => (isPlaceholder || !nftId) && e.preventDefault()}
 >
-<img src={nftImage} className="lazy nft__item_preview" alt="" />
+<img src={nImg} className="lazy nft__item_preview" alt={title} />
 </Link>
 </div>
 
 <div className="nft__item_info">
 <Link
-to={isPlaceholder ? "#" : `/item-details/${itemId}`}
-onClick={(e) => isPlaceholder && e.preventDefault()}
+to={isPlaceholder || !nftId ? "#" : `/item-details/${nftId}`}
+onClick={(e) => (isPlaceholder || !nftId) && e.preventDefault()}
 >
-<h4>{title}</h4>
+<h4>{isPlaceholder ? "Loading..." : title}</h4>
 </Link>
 
-<div className="nft__item_price">{Number(price).toFixed(2)} ETH</div>
+<div className="nft__item_price">{isPlaceholder ? "0.00" : priceText} ETH</div>
 
 <div className="nft__item_like">
 <i className="fa fa-heart"></i>
-<span>{likes}</span>
+<span>{isPlaceholder ? 0 : likes}</span>
 </div>
 </div>
 </div>
 </div>
 );
 })}
+
+{!loading && authorId && authorItems.length === 0 && (
+<div className="col-md-12" style={{ marginTop: 10, opacity: 0.8 }}>
+No items found for this author.
+</div>
+)}
 </div>
 </div>
 </div>
