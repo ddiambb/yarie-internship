@@ -6,10 +6,6 @@ import AuthorImageFallback from "../images/author_thumbnail.jpg";
 
 const Author = () => {
 const { authorId } = useParams();
-<<<<<<< HEAD
-=======
-
->>>>>>> item-details
 
 const [author, setAuthor] = useState(null);
 const [loading, setLoading] = useState(true);
@@ -68,7 +64,7 @@ const tag = author?.tag ?? "";
 const wallet = author?.address ?? author?.walletAddress ?? author?.wallet ?? "";
 const image = author?.authorImage ?? AuthorImageFallback;
 
-// try common possible keys for the author's NFTs/items
+
 const authorNfts =
 author?.nfts ??
 author?.items ??
