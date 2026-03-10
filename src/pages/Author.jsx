@@ -6,6 +6,10 @@ import AuthorImageFallback from "../images/author_thumbnail.jpg";
 
 const Author = () => {
 const { authorId } = useParams();
+<<<<<<< HEAD
+=======
+
+>>>>>>> item-details
 
 const [author, setAuthor] = useState(null);
 const [loading, setLoading] = useState(true);
