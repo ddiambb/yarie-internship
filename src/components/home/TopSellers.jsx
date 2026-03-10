@@ -46,7 +46,7 @@ const TopSellers = () => {
             <ol className="author_list">
               {listToRender.map((seller, index) => {
                 const isPlaceholder = loading || !seller;
-
+             
                 const keyId = seller?.id ?? index;
 
                 const authorId = String(seller?.authorId ?? "").trim();
