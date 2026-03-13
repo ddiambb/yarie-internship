@@ -1,11 +1,21 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import AuthorBanner from "../images/author_banner.jpg";
 import AuthorItems from "../components/author/AuthorItems";
 import AuthorImageFallback from "../images/author_thumbnail.jpg";
 
+const pickFirst = (...vals) => {
+for (const v of vals) {
+if (v === 0) return 0;
+if (typeof v === "string" && v.trim() !== "") return v;
+if (v !== undefined && v !== null && typeof v !== "string") return v;
+}
+return "";
+};
+
 const Author = () => {
 const { authorId } = useParams();
+const location = useLocation();
 
 const [author, setAuthor] = useState(null);
 const [loading, setLoading] = useState(true);
@@ -59,11 +69,31 @@ isMounted = false;
 };
 }, [authorId]);
 
-const name = author?.authorName ?? "Unknown";
-const tag = author?.tag ?? "";
-const wallet = author?.address ?? author?.walletAddress ?? author?.wallet ?? "";
-const image = author?.authorImage ?? AuthorImageFallback;
+const sellerState = location.state?.seller;
 
+const name = pickFirst(
+author?.authorName,
+sellerState?.authorName,
+author?.name,
+"Unknown"
+);
+
+const tag = pickFirst(author?.tag, author?.username, "");
+const wallet = pickFirst(
+author?.address,
+author?.walletAddress,
+author?.wallet,
+""
+);
+
+const image =
+pickFirst(
+author?.authorImage,
+sellerState?.authorImage,
+author?.avatar,
+author?.profileImage,
+author?.image
+) || AuthorImageFallback;
 
 const authorNfts =
 author?.nfts ??
@@ -170,4 +200,5 @@ Couldn’t load this author. Check the endpoint / ID.
 </div>
 );
 };
+
 export default Author;

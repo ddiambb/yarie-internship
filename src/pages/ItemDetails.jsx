@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useLocation } from "react-router-dom";
 import EthImage from "../images/ethereum.svg";
 import AuthorImageFallback from "../images/author_thumbnail.jpg";
 import nftImageFallback from "../images/nftImage.jpg";
@@ -13,30 +13,70 @@ if (v !== undefined && v !== null && typeof v !== "string") return v;
 return "";
 };
 
-const normalizePerson = (raw) => {
+const normalizeOwner = (raw) => {
 const id = String(
 pickFirst(
+raw?.ownerId,
 raw?.authorId,
 raw?.id,
 raw?._id,
-raw?.userId,
-raw?.ownerId,
-raw?.creatorId
+raw?.userId
 ) || ""
 ).trim();
 
 const name = String(
 pickFirst(
+raw?.ownerName,
 raw?.authorName,
 raw?.name,
 raw?.username,
-raw?.displayName,
-raw?.ownerName,
-raw?.creatorName
+raw?.displayName
 ) || ""
 ).trim();
 
-const image = pickFirst(raw?.authorImage, raw?.image, raw?.avatar, raw?.profileImage);
+const image = pickFirst(
+raw?.ownerImage,
+raw?.authorImage,
+raw?.avatar,
+raw?.profileImage,
+raw?.image
+);
+
+return {
+id,
+name: name || "Unknown",
+image: image || AuthorImageFallback,
+};
+};
+
+const normalizeCreator = (raw) => {
+const id = String(
+pickFirst(
+raw?.creatorId,
+raw?.authorId,
+raw?.id,
+raw?._id,
+raw?.userId
+) || ""
+).trim();
+
+const name = String(
+pickFirst(
+raw?.creatorName,
+raw?.authorName,
+raw?.name,
+raw?.username,
+raw?.displayName
+) || ""
+).trim();
+
+const image = pickFirst(
+raw?.creatorImage,
+raw?.authorImage,
+raw?.avatar,
+raw?.profileImage,
+raw?.image
+);
 
 return {
 id,
@@ -47,6 +87,9 @@ image: image || AuthorImageFallback,
 
 const ItemDetails = () => {
 const { itemId } = useParams();
+const location = useLocation();
+const clickedItem = location.state?.item;
+const clickedSeller = location.state?.seller;
 
 const [item, setItem] = useState(null);
 const [loading, setLoading] = useState(true);
@@ -73,12 +116,21 @@ const url =
 encodeURIComponent(itemId);
 
 fetch(url)
-.then((res) => res.json())
+.then((res) => {
+if (!res.ok) {
+throw new Error(`Item details request failed: ${res.status}`);
+}
+return res.json();
+})
 .then((data) => {
 if (!isMounted) return;
 setItem(data && typeof data === "object" ? data : null);
 })
-.catch((err) => console.error("itemDetails error:", err))
+.catch((err) => {
+console.error("itemDetails error:", err);
+if (!isMounted) return;
+setItem(null);
+})
 .finally(() => {
 if (!isMounted) return;
 setLoading(false);
@@ -89,59 +141,88 @@ isMounted = false;
 };
 }, [itemId]);
 
-// Basic fields
-const title = item?.title || item?.name || "NFT Item";
-const description = item?.description || item?.desc || "";
-const price = Number(pickFirst(item?.price, item?.currentBid, item?.ethPrice, 0)) || 0;
-const likes = Number(pickFirst(item?.likes, item?.likeCount, 0)) || 0;
+const title = pickFirst(
+clickedItem?.title,
+item?.title,
+item?.name,
+"NFT Item"
+);
+
+const description = pickFirst(item?.description, item?.desc, "");
+
+const price =
+Number(
+pickFirst(
+clickedItem?.price,
+item?.price,
+item?.currentBid,
+item?.ethPrice,
+0
+)
+) || 0;
+
+const likes =
+Number(pickFirst(clickedItem?.likes, item?.likes, item?.likeCount, 0)) || 0;
+
 const views = Number(pickFirst(item?.views, item?.viewCount, 0)) || 0;
 
 const image =
 pickFirst(
+clickedItem?.nftImage,
 item?.nftImage,
-item?.image,
 item?.imageUrl,
+item?.image,
 item?.img,
 item?.cover,
 item?.thumbnail
 ) || nftImageFallback;
 
-
-const owner = normalizePerson(
+const owner = normalizeOwner(
 pickFirst(
 item?.owner,
 item?.ownerInfo,
 item?.ownerData,
-item?.author,
 {
-ownerId: item?.ownerId,
-ownerName: item?.ownerName,
-image: item?.ownerImage,
-},
-{
-authorId: item?.authorId,
-authorName: item?.authorName,
-authorImage: item?.authorImage,
+ownerId:
+clickedSeller?.authorId ??
+clickedItem?.authorId ??
+item?.ownerId,
+authorId:
+clickedSeller?.authorId ??
+clickedItem?.authorId ??
+item?.ownerId,
+ownerName:
+clickedSeller?.authorName ??
+clickedItem?.authorName ??
+item?.ownerName,
+authorName:
+clickedSeller?.authorName ??
+clickedItem?.authorName ??
+item?.ownerName,
+ownerImage:
+clickedSeller?.authorImage ??
+clickedItem?.authorImage ??
+item?.ownerImage,
+authorImage:
+clickedSeller?.authorImage ??
+clickedItem?.authorImage ??
+item?.ownerImage,
 }
 )
 );
 
-
-const creator = normalizePerson(
+const creator = normalizeCreator(
 pickFirst(
 item?.creator,
 item?.creatorInfo,
 item?.creatorData,
-item?.author, 
 {
 creatorId: item?.creatorId,
+authorId: item?.creatorId,
 creatorName: item?.creatorName,
-image: item?.creatorImage,
-},
-{
-authorId: item?.authorId,
-authorName: item?.authorName,
-authorImage: item?.authorImage,
+authorName: item?.creatorName,
+creatorImage: item?.creatorImage,
+authorImage: item?.creatorImage,
 }
 )
 );
