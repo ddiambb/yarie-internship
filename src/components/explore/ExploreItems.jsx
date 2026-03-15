@@ -75,14 +75,14 @@ import NftCard from "../shared/NftCard";
 
       <div className="col-md-12 text-center">
         {canLoadMore && (
-          <a
-            href="#"
-            id="loadmore"
-            className="btn-main lead"
-            onClick={onLoadMore}
-          >
-            Load more
-          </a>
+         <button
+type="button"
+id="loadmore"
+className="btn-main lead"
+onClick={onLoadMore}
+>
+Load more
+</button>
         )}
       </div>
     </>
