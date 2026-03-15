@@ -149,13 +149,13 @@ title="Creator"
 <button type="button">Buy Now</button>
 <div className="nft__item_share">
 <h4>Share</h4>
-<a href="#" onClick={(e) => e.preventDefault()}>
+<a href="/" onClick={(e) => e.preventDefault()}>
 <i className="fa fa-facebook fa-lg" />
 </a>
-<a href="#" onClick={(e) => e.preventDefault()}>
+<a href="/" onClick={(e) => e.preventDefault()}>
 <i className="fa fa-twitter fa-lg" />
 </a>
-<a href="#" onClick={(e) => e.preventDefault()}>
+<a href="/npm " onClick={(e) => e.preventDefault()}>
 <i className="fa fa-envelope fa-lg" />
 </a>
 </div>
