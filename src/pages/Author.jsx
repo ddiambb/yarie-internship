@@ -1,12 +1,21 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import AuthorBanner from "../images/author_banner.jpg";
 import AuthorItems from "../components/author/AuthorItems";
 import AuthorImageFallback from "../images/author_thumbnail.jpg";
 
+const pickFirst = (...vals) => {
+for (const v of vals) {
+if (v === 0) return 0;
+if (typeof v === "string" && v.trim() !== "") return v;
+if (v !== undefined && v !== null && typeof v !== "string") return v;
+}
+return "";
+};
+
 const Author = () => {
 const { authorId } = useParams();
-
+const location = useLocation();
 
 const [author, setAuthor] = useState(null);
 const [loading, setLoading] = useState(true);
@@ -30,21 +39,26 @@ return;
 setLoading(true);
 
 const url =
-"https://us-central1-nft-cloud-functions.cloudfunctions.net/author?author=" +
+"https://us-central1-nft-cloud-functions.cloudfunctions.net/authors?author=" +
 encodeURIComponent(authorId);
 
-
-
 fetch(url)
-.then((res) => res.json())
+.then((res) => {
+if (!res.ok) {
+throw new Error(`Author request failed: ${res.status}`);
+}
+return res.json();
+})
 .then((data) => {
 if (!isMounted) return;
 setAuthor(data && typeof data === "object" ? data : null);
-
-
 setIsFollowing(false);
 })
-.catch((err) => console.error("author error:", err))
+.catch((err) => {
+console.error("author error:", err);
+if (!isMounted) return;
+setAuthor(null);
+})
 .finally(() => {
 if (!isMounted) return;
 setLoading(false);
@@ -55,10 +69,39 @@ isMounted = false;
 };
 }, [authorId]);
 
-const name = author?.authorName ?? "Unknown";
-const tag = author?.tag ?? "";
-const wallet = author?.address ?? author?.walletAddress ?? author?.wallet ?? "";
-const image = author?.authorImage ?? AuthorImageFallback;
+const sellerState = location.state?.seller;
+
+const name = pickFirst(
+author?.authorName,
+sellerState?.authorName,
+author?.name,
+"Unknown"
+);
+
+const tag = pickFirst(author?.tag, author?.username, "");
+const wallet = pickFirst(
+author?.address,
+author?.walletAddress,
+author?.wallet,
+""
+);
+
+const image =
+pickFirst(
+author?.authorImage,
+sellerState?.authorImage,
+author?.avatar,
+author?.profileImage,
+author?.image
+) || AuthorImageFallback;
+
+const authorNfts =
+author?.nfts ??
+author?.items ??
+author?.authorItems ??
+author?.authorNfts ??
+author?.nftCollection ??
+[];
 
 const baseFollowers = Number(author?.followers ?? 0);
 const followers = Number.isFinite(baseFollowers)
@@ -97,6 +140,7 @@ style={{ background: `url(${AuthorBanner}) top` }}
 <div className="profile_name">
 <h4>
 {isPlaceholder ? "Loading..." : name}
+
 <span className="profile_username">
 {isPlaceholder
 ? ""
@@ -123,6 +167,7 @@ style={{ background: `url(${AuthorBanner}) top` }}
 type="button"
 className="btn-main"
 onClick={onToggleFollow}
+disabled={isPlaceholder}
 >
 {isFollowing ? "Unfollow" : "Follow"}
 </button>
@@ -133,7 +178,13 @@ onClick={onToggleFollow}
 
 <div className="col-md-12">
 <div className="de_tab tab_simple">
-<AuthorItems authorName={name} authorImage={image} />
+<AuthorItems
+authorId={authorId}
+authorName={name}
+authorImage={image}
+items={Array.isArray(authorNfts) ? authorNfts : []}
+loading={loading}
+/>
 </div>
 </div>
 
@@ -149,4 +200,5 @@ Couldn’t load this author. Check the endpoint / ID.
 </div>
 );
 };
+
 export default Author;

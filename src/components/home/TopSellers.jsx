@@ -2,6 +2,15 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import AuthorImageFallback from "../../images/author_thumbnail.jpg";
 
+const pickFirst = (...vals) => {
+for (const v of vals) {
+if (v === 0) return 0;
+if (typeof v === "string" && v.trim() !== "") return v;
+if (v !== undefined && v !== null && typeof v !== "string") return v;
+}
+return "";
+};
+
 const TopSellers = () => {
 const [topSellers, setTopSellers] = useState([]);
 const [loading, setLoading] = useState(true);
@@ -46,28 +55,48 @@ return (
 <ol className="author_list">
 {listToRender.map((seller, index) => {
 const isPlaceholder = loading || !seller;
-const keyId = seller?.id ?? index;
+const keyId = seller?.id ?? seller?.authorId ?? index;
 
-const authorId = String(seller?.authorId ?? "").trim();
+const authorId = String(pickFirst(seller?.authorId, seller?.id, "")).trim();
 const authorLink = authorId ? `/author/${authorId}` : "#";
 
-const authorName = seller?.authorName ?? "Unknown";
-const authorImage = seller?.authorImage ?? AuthorImageFallback;
-const priceValue = Number(seller?.price);
+const authorName = pickFirst(
+seller?.authorName,
+seller?.name,
+seller?.username,
+"Unknown"
+);
+
+const authorImage =
+pickFirst(
+seller?.authorImage,
+seller?.avatar,
+seller?.profileImage,
+seller?.image
+) || AuthorImageFallback;
+
+const priceValue = Number(pickFirst(seller?.price, 0));
 const priceText = Number.isFinite(priceValue)
 ? priceValue.toFixed(1)
-: String(seller?.price ?? "0.0");
+: "0.0";
 
 return (
 <li key={keyId} className={isPlaceholder ? "skeleton-li" : ""}>
 <div className="author_list_pp">
 <Link
-to={isPlaceholder ? "#" : authorLink}
+to={isPlaceholder || !authorId ? "#" : authorLink}
+state={
+isPlaceholder
+? undefined
+: {
+seller,
+from: "top-sellers",
+}
+}
 onClick={(e) =>
 (isPlaceholder || !authorId) && e.preventDefault()
 }
 >
-
 <img
 className="pp-author"
 src={isPlaceholder ? AuthorImageFallback : authorImage}
@@ -85,7 +114,15 @@ alt={isPlaceholder ? "" : authorName}
 </>
 ) : (
 <>
-<Link to={authorLink}>{authorName}</Link>
+<Link
+to={authorLink}
+state={{
+seller,
+from: "top-sellers",
+}}
+>
+{authorName}
+</Link>
 <span>{priceText} ETH</span>
 </>
 )}
@@ -102,4 +139,3 @@ alt={isPlaceholder ? "" : authorName}
 };
 
 export default TopSellers;
-
